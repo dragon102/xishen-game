@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="戏神" />
+    <meta name="theme-color" content="#000000" />
+    <title>我不是戏神 · 第一章</title>
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+      body { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+      #app { position: relative; width: 100%; height: 100%; }
+      #screen { position: absolute; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <div id="app"><canvas id="screen"></canvas></div>
+    <div id="rotate">请把手机横过来</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
