@@ -140,11 +140,22 @@ export function drawHomeBackdrop(ctx: CanvasRenderingContext2D, v: HomeBackdrop)
   ctx.fillStyle = v.night ? 'rgba(10,14,30,0.45)' : 'rgba(60,80,110,0.22)';
   ctx.fillRect(0, 0, VIEW_W, VIEW_H);
   if (v.night) {
-    const lx = X(43, cx);
-    ctx.fillStyle = 'rgba(255,200,120,0.10)';
+    // 吊灯：灯线、灯罩、灯泡，加一束向下的淡光
+    const lx = Math.round(X(43, cx));
+    ctx.fillStyle = 'rgba(255,210,140,0.06)';
     ctx.beginPath();
-    ctx.ellipse(lx, 120, 90, 70, 0, 0, Math.PI * 2);
+    ctx.moveTo(lx - 3, 76);
+    ctx.lineTo(lx + 3, 76);
+    ctx.lineTo(lx + 45, FLOOR_Y);
+    ctx.lineTo(lx - 45, FLOOR_Y);
+    ctx.closePath();
     ctx.fill();
+    ctx.fillStyle = '#1a1a20';
+    ctx.fillRect(lx, 0, 1, 70);
+    ctx.fillStyle = '#c9a24a';
+    ctx.fillRect(lx - 3, 70, 6, 4);
+    ctx.fillStyle = '#ffe2a0';
+    ctx.fillRect(lx - 1, 74, 2, 2);
   }
 }
 
@@ -183,9 +194,13 @@ export function drawHomeLevel(ctx: CanvasRenderingContext2D, s: HomeSession, cam
   drawHomeBackdrop(ctx, { camX: cx, time: s.time, night: false, props: { bucket: 'none' }, eyes: s.eyes });
   const fx = s.actor.body.x + s.actor.body.w / 2;
   if (s.sitting) {
-    drawChenling(ctx, fx, FLOOR_Y, 1, 'idle0', 10, cx);
+    drawChenling(ctx, fx, FLOOR_Y, 1, 'idle0', -12, cx);
+    // 被子只盖在腿上，头和身子留在上面
+    const blanketX = X(HOME_DECOR.bed, cx) + 20;
     ctx.fillStyle = '#5b6b8a';
-    ctx.fillRect(X(HOME_DECOR.bed, cx) + 20, FLOOR_Y - 30, 60, 12);
+    ctx.fillRect(blanketX, FLOOR_Y - 24, 60, 12);
+    ctx.fillStyle = '#4a5878';
+    ctx.fillRect(blanketX, FLOOR_Y - 24, 60, 1);
   } else {
     const { frame, dy } = frameFor(s.actor.anim, s.actor.animTime);
     drawChenling(ctx, fx, s.actor.body.y + s.actor.body.h, s.actor.facing, frame, dy, cx);
