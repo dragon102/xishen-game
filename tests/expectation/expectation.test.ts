@@ -130,4 +130,36 @@ describe('expectation', () => {
     expect(formatGain(0.5)).toBe('0.5');
     expect(formatGain(0.1)).toBe('0.1');
   });
+
+  describe('边界', () => {
+    it('59.9% 再走 0.25 秒只涨 0.075，还没过关', () => {
+      const s: ExpectState = { ...createExpectation(), value: 59.9 };
+      const t = tickExpectation(s, { ...still, moving: true }, DT).state;
+      expect(t.value).toBeCloseTo(59.975, 6);
+      expect(t.status).toBe('ok');
+    });
+
+    it('54% + 一个调查点正好 60%，算过关', () => {
+      const s: ExpectState = { ...createExpectation(), value: 54 };
+      const t = tickExpectation(s, { ...airborne, newHotspots: 1 }, DT).state;
+      expect(t.value).toBe(60);
+      expect(t.status).toBe('passed');
+    });
+
+    it('正好 20% 还不算危险', () => {
+      const s: ExpectState = { ...createExpectation(), value: 20 };
+      const t = tickExpectation(s, airborne, DT).state;
+      expect(t.value).toBe(20);
+      expect(t.status).toBe('ok');
+      expect(t.dangerTime).toBe(0);
+    });
+
+    it('第一跳后正好满 3 秒的那一跳，收益恢复成 2', () => {
+      let s = tickExpectation(createExpectation(), { ...airborne, jumped: true }, DT).state; // time 0.25
+      s = ticks(s, airborne, 11); // time 3.0
+      const t = tickExpectation(s, { ...airborne, jumped: true }, DT); // time 3.25
+      expect(t.state.time).toBe(3.25);
+      expect(t.gains).toEqual([2]);
+    });
+  });
 });

@@ -11,6 +11,7 @@ import {
   think,
   tickDialogue,
   visibleText,
+  type Talk,
 } from '../../src/dialogue/dialogue';
 
 describe('dialogue', () => {
@@ -55,6 +56,16 @@ describe('dialogue', () => {
     t = stepTalk(t, 5, false);
     expect(t.current?.line.text).toBe('一');
     expect(isComplete(t.current!)).toBe(true);
+  });
+
+  it('点一下不会跳过没看完的台词：即使这一步的计时本身就能把它显示完', () => {
+    const line = think('一二三四五六七八九十');
+    const t: Talk = { current: tickDialogue(openLine(line), 9.5 / CHARS_PER_SEC), queue: [think('下一句')] };
+    expect(isComplete(t.current!)).toBe(false);
+    const after = stepTalk(t, 1, true);
+    expect(after.current?.line.text).toBe('一二三四五六七八九十');
+    expect(isComplete(after.current!)).toBe(true);
+    expect(after.queue).toHaveLength(1);
   });
 
   it('空队列的 startTalk 没有 current', () => {

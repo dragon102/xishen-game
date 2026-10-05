@@ -58,11 +58,10 @@ export function startTalk(lines: readonly Line[]): Talk {
 
 export function stepTalk(t: Talk, dt: number, advance: boolean): Talk {
   if (!t.current) return t;
-  let d = tickDialogue(t.current, dt);
+  // 「看没看完」要在这一步计时之前判断：玩家点下去的那一刻没看完，就只补全、不翻页。
   if (advance) {
-    const r = advanceDialogue(d);
-    if (r.finished) return startTalk(t.queue);
-    d = r.state;
+    const r = advanceDialogue(t.current);
+    return r.finished ? startTalk(t.queue) : { current: r.state, queue: t.queue };
   }
-  return { current: d, queue: t.queue };
+  return { current: tickDialogue(t.current, dt), queue: t.queue };
 }
