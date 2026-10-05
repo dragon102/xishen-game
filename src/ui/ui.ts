@@ -50,7 +50,7 @@ export function createUi(app: HTMLElement, actions: Actions, cb: UiCallbacks): U
   const body = el('div', '', dlg);
   const name = el('div', 'name', body);
   const text = el('div', 'text', body);
-  const more = el('div', 'more', dlg, '▼');
+  const more = el('div', 'more', dlg, '▼︎');
   let lastDialogueKey = '';
 
   const expect = el('div', 'expect hidden', overlay);
@@ -64,8 +64,8 @@ export function createUi(app: HTMLElement, actions: Actions, cb: UiCallbacks): U
     b.id = id;
     return b;
   };
-  const left = button('btn-left', '◀', 'btn');
-  const right = button('btn-right', '▶', 'btn');
+  const left = button('btn-left', '◀︎', 'btn');
+  const right = button('btn-right', '▶︎', 'btn');
   const jump = button('btn-jump', '跳', 'btn');
   const interact = button('btn-interact', '互动', 'btn');
   const moveButtons = [left, right, jump, interact];
@@ -80,7 +80,7 @@ export function createUi(app: HTMLElement, actions: Actions, cb: UiCallbacks): U
   bindTouchButton(interact, 'interact', actions);
   bindTouchButton(interact, 'advance', actions);
   const pauseBtn = button('btn-pause', '暂停', 'small-btn');
-  const skipBtn = button('btn-skip', '跳过 ▶▶', 'small-btn');
+  const skipBtn = button('btn-skip', '跳过 ▶▶︎', 'small-btn');
   pauseBtn.addEventListener('click', () => cb.onPause());
   skipBtn.addEventListener('click', () => cb.onSkip());
 

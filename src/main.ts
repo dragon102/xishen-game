@@ -110,12 +110,15 @@ function enterMode(): void {
 
 function setPaused(p: boolean): void {
   const can = opening !== null || stage !== null || home !== null;
+  const was = paused;
   paused = p && can;
   actions.releaseAll();
   ui.showPause(paused);
   if (paused) {
     sfx.setHeartbeat(false);
     sfx.suspend();
+  } else if (was && !paused) {
+    sfx.unlock();
   }
 }
 
@@ -228,6 +231,8 @@ if (import.meta.env.DEV) {
     },
   };
 }
+
+app.addEventListener('contextmenu', (e) => e.preventDefault());
 
 relayout();
 enterMode();

@@ -61,7 +61,10 @@ describe('main.ts 接线', () => {
   });
 
   it('暂停时挂起音频，竖屏时暂停', () => {
-    expect(fnBody('function setPaused(')).toMatch(/sfx\.suspend\(\)/);
+    const body = fnBody('function setPaused(');
+    expect(body).toMatch(/sfx\.suspend\(\)/);
+    // 不管从按钮、Esc 还是 P 键恢复，都要走到 unlock
+    expect(body).toMatch(/was\s*&&\s*!paused[\s\S]*sfx\.unlock\(\)/);
     expect(SRC).toMatch(/matchMedia\(\s*'\(orientation: portrait\)'\s*\)/);
   });
 
