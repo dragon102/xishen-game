@@ -1,18 +1,19 @@
 /** spec §4.2 的期待值规则。所有数字都是初值，调手感只改这里。 */
 export const EXPECT = {
   start: 29,
-  walkPerSec: 0.3,
-  jumpBase: 2,
-  jumpWindow: 3,
+  walkPerSec: 0.25,
+  jumpBase: 1.5,
+  jumpWindow: 4,
   jumpMin: 0.1,
-  hotspot: 6,
-  idleGrace: 2,
+  hotspot: 5,
+  idleGrace: 1.5,
+  boredomPerSec: 0.21,
   idleBase: 1,
   idleAccel: 0.5,
   idleMax: 4,
   danger: 20,
   failAfter: 5,
-  pass: 60,
+  pass: 70,
 } as const;
 
 export type ExpectStatus = 'ok' | 'danger' | 'failed' | 'passed';
@@ -53,7 +54,7 @@ export function jumpGain(recentCount: number): number {
 }
 
 export function formatGain(g: number): string {
-  return g >= 1 ? String(Math.round(g)) : g.toFixed(1);
+  return Number.isInteger(g) ? String(g) : g.toFixed(1);
 }
 
 export function tickExpectation(s: ExpectState, ev: ExpectEvents, dt: number): ExpectTick {
@@ -64,6 +65,8 @@ export function tickExpectation(s: ExpectState, ev: ExpectEvents, dt: number): E
   const gains: number[] = [];
 
   if (ev.moving) value += EXPECT.walkPerSec * dt;
+  // 观众会慢慢看腻：不管动不动都在掉（读想法时不 tick，所以暂停）。
+  value -= EXPECT.boredomPerSec * dt;
 
   let recentJumps = s.recentJumps.filter((t) => t > time - EXPECT.jumpWindow);
   if (ev.jumped) {

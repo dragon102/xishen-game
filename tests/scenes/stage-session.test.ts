@@ -55,13 +55,13 @@ describe('stage session', () => {
     expect(creaks).toBe(Math.floor(1 / FOOTSTEP_INTERVAL));
   });
 
-  it('首次调查：+6% 飘字、打开想法；再次调查不加分', () => {
+  it('首次调查：+5% 飘字、打开想法；再次调查不加分', () => {
     let s = walkTo(skipIntro(createStageSession()), 30 * 16 + 8);
     expect(s.nearby?.id).toBe('trapdoor');
     const before = s.expect.value;
     const out = stepStage(s, { ...none, interactPressed: true }, DT);
-    expect(out.popups.map((p) => p.text)).toEqual(['+6%']);
-    expect(out.session.expect.value).toBeGreaterThan(before + 5.9);
+    expect(out.popups.map((p) => p.text)).toEqual(['+5%']);
+    expect(out.session.expect.value).toBeGreaterThan(before + 4.9);
     expect(out.session.talk.current?.line.text).toBe('地板上有块活板。');
     s = out.session;
     for (let i = 0; i < 4; i++) s = stepStage(s, tap, DT).session;
@@ -108,9 +108,9 @@ describe('stage session', () => {
     expect(s.outcome).toBe('failed');
   });
 
-  it('达到 60%：铃声 → 碎裂声 → outcome = passed', () => {
+  it('达到 70%：铃声 → 碎裂声 → outcome = passed', () => {
     let s = walkTo(skipIntro(createStageSession()), 30 * 16 + 8);
-    s = { ...s, expect: { ...s.expect, value: 58 } };
+    s = { ...s, expect: { ...s.expect, value: 68 } };
     const out = stepStage(s, { ...none, interactPressed: true }, DT);
     expect(out.sounds).toContain('bell');
     expect(out.session.phase).toBe('passing');
@@ -127,7 +127,7 @@ describe('stage session', () => {
 
   it('过关/失败的那一帧正好在调查：对话框收起，不留空框盖在演出上', () => {
     let s = walkTo(skipIntro(createStageSession()), 30 * 16 + 8);
-    s = { ...s, expect: { ...s.expect, value: 58 } };
+    s = { ...s, expect: { ...s.expect, value: 68 } };
     const out = stepStage(s, { ...none, interactPressed: true }, DT);
     expect(out.session.phase).toBe('passing');
     expect(out.session.talk.current).toBeNull();
