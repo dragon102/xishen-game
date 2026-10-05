@@ -25,6 +25,8 @@ export interface Ui {
   renderDialogue(d: DialogueState | null): void;
   /** text 为 null 时隐藏期待值屏 */
   renderExpect(text: string | null, danger: boolean): void;
+  /** 玩家不能行动时（过关/失败动画、结尾特写）收起四个移动键；不会越过 setMode 定下的底线。 */
+  setMoveControlsVisible(visible: boolean): void;
   popup(gameX: number, gameY: number, text: string): void;
   showEndCard(): void;
 }
@@ -66,6 +68,12 @@ export function createUi(app: HTMLElement, actions: Actions, cb: UiCallbacks): U
   const right = button('btn-right', '▶', 'btn');
   const jump = button('btn-jump', '跳', 'btn');
   const interact = button('btn-interact', '互动', 'btn');
+  const moveButtons = [left, right, jump, interact];
+  let playingMode = false;
+  let moveVisible = true;
+  const applyMoveButtons = (): void => {
+    for (const b of moveButtons) b.classList.toggle('hidden', !(playingMode && moveVisible));
+  };
   bindTouchButton(left, 'left', actions);
   bindTouchButton(right, 'right', actions);
   bindTouchButton(jump, 'jump', actions);
@@ -122,7 +130,9 @@ export function createUi(app: HTMLElement, actions: Actions, cb: UiCallbacks): U
     },
     setMode(mode) {
       const playing = mode === 'stage' || mode === 'home';
-      for (const b of [left, right, jump, interact]) b.classList.toggle('hidden', !playing);
+      playingMode = playing;
+      moveVisible = true;
+      applyMoveButtons();
       // spec §4.2 开场引导：进剧场时左右键与互动键轻微闪烁
       for (const b of [left, right, interact]) {
         b.classList.toggle('hint', mode === 'stage');
@@ -138,6 +148,10 @@ export function createUi(app: HTMLElement, actions: Actions, cb: UiCallbacks): U
       dlg.classList.add('hidden');
       lastDialogueKey = '';
       overlay.querySelectorAll('.popup').forEach((p) => p.remove());
+    },
+    setMoveControlsVisible(visible) {
+      moveVisible = visible;
+      applyMoveButtons();
     },
     showTitle(m) {
       menu.replaceChildren();

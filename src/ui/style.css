@@ -2,7 +2,7 @@
 .hidden { display: none !important; }
 
 .dialogue { position: absolute; left: calc(var(--u) * 16); right: calc(var(--u) * 16); top: calc(var(--u) * 8); min-height: calc(var(--u) * 58); box-sizing: border-box; display: flex; gap: calc(var(--u) * 8); padding: calc(var(--u) * 5); background: rgba(10, 10, 14, 0.9); border: calc(var(--u) * 1) solid #c41e2a; }
-.dialogue.beside-expect { right: calc(var(--u) * 150); }
+.dialogue.beside-expect { right: calc(var(--u) * 176); }
 .dialogue canvas { width: calc(var(--u) * 48); height: calc(var(--u) * 48); image-rendering: pixelated; flex: none; }
 .dialogue .name { font-size: calc(var(--u) * 9); color: #e0414b; margin-bottom: calc(var(--u) * 3); }
 .dialogue .text { font-size: calc(var(--u) * 11); line-height: 1.5; }
@@ -11,9 +11,9 @@
 .dialogue.think .text { font-style: italic; color: #b8b8c0; }
 .dialogue .more { position: absolute; right: calc(var(--u) * 6); bottom: calc(var(--u) * 3); font-size: calc(var(--u) * 9); animation: blink 1s steps(2) infinite; }
 
-.expect { position: absolute; right: calc(var(--u) * 8); top: calc(var(--u) * 8); padding: calc(var(--u) * 4) calc(var(--u) * 6); background: #0b0b0e; border: calc(var(--u) * 1) solid #3a0a10; color: #ff3344; text-shadow: 0 0 calc(var(--u) * 3) #ff2233; }
+.expect { box-sizing: border-box; max-width: calc(var(--u) * 160); position: absolute; right: calc(var(--u) * 8); top: calc(var(--u) * 8); padding: calc(var(--u) * 4) calc(var(--u) * 6); background: #0b0b0e; border: calc(var(--u) * 1) solid #3a0a10; color: #ff3344; text-shadow: 0 0 calc(var(--u) * 3) #ff2233; }
 .expect .value { font-size: calc(var(--u) * 12); letter-spacing: 0.05em; }
-.expect .fine { font-size: calc(var(--u) * 7); color: #a33; margin-top: calc(var(--u) * 2); max-width: calc(var(--u) * 150); line-height: 1.3; }
+.expect .fine { font-size: calc(var(--u) * 7); color: #a33; margin-top: calc(var(--u) * 2); line-height: 1.3; }
 .expect.danger .value { animation: blink 0.5s steps(2) infinite; }
 
 .popup { position: absolute; font-size: calc(var(--u) * 9); color: #ffd166; text-shadow: 0 1px 0 #000; transform: translate(-50%, 0); animation: rise 0.9s ease-out forwards; }

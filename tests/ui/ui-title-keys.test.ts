@@ -52,6 +52,25 @@ describe('标题画面的键盘快捷键', () => {
     expect(cb.onStart).not.toHaveBeenCalled();
   });
 
+  it('setMoveControlsVisible 只管 ◀ ▶ 跳 互动 四个键，且不越过 setMode 的底线', () => {
+    const { ui } = setup();
+    const ids = ['btn-left', 'btn-right', 'btn-jump', 'btn-interact'];
+    const hidden = (id: string): boolean => (document.getElementById(id) as HTMLElement).classList.contains('hidden');
+    ui.setMode('stage');
+    expect(ids.map(hidden)).toEqual([false, false, false, false]);
+    ui.setMoveControlsVisible(false);
+    expect(ids.map(hidden)).toEqual([true, true, true, true]);
+    expect(hidden('btn-pause')).toBe(false);
+    ui.setMoveControlsVisible(true);
+    expect(ids.map(hidden)).toEqual([false, false, false, false]);
+    ui.setMoveControlsVisible(false);
+    ui.setMode('home');
+    expect(ids.map(hidden)).toEqual([false, false, false, false]);
+    ui.setMode('title');
+    ui.setMoveControlsVisible(true);
+    expect(ids.map(hidden)).toEqual([true, true, true, true]);
+  });
+
   it('对话框能跟着期待值屏避让', () => {
     const { ui } = setup();
     const dlg = document.querySelector('.dialogue') as HTMLElement;

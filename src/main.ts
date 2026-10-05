@@ -138,6 +138,7 @@ function update(dt: number): void {
     camX = followCamera(camX, footX(stage.actor), levelWidthPx(STAGE), dt);
     spotX += (footX(stage.actor) - spotX) * (1 - Math.exp(-2.5 * dt));
     for (const p of out.popups) ui.popup(p.worldX - camX, p.worldY, p.text);
+    ui.setMoveControlsVisible(stage.phase !== 'passing' && stage.phase !== 'failing' && stage.phase !== 'done');
     ui.renderDialogue(stage.talk.current);
     ui.renderExpect(`${Math.floor(stage.expect.value)}%`, stage.expect.status === 'danger');
     if (stage.outcome === 'passed') apply({ type: 'levelComplete' });
@@ -149,6 +150,7 @@ function update(dt: number): void {
     home = out.session;
     for (const s of out.sounds) sfx.play(s);
     camX = followCamera(camX, footX(home.actor), levelWidthPx(HOME), dt);
+    ui.setMoveControlsVisible(home.phase !== 'finale' && home.phase !== 'done');
     ui.renderDialogue(home.talk.current);
     ui.renderExpect(home.flicker > 0 ? '??%' : null, false);
     if (home.outcome === 'complete') apply({ type: 'levelComplete' });

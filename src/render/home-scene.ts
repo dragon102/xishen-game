@@ -159,26 +159,93 @@ export function drawHomeBackdrop(ctx: CanvasRenderingContext2D, v: HomeBackdrop)
   }
 }
 
-/** 结尾特写：放大的地板、碎桶片、形状扭曲的深红痕迹（暗示，不写实）。 */
-function drawFinale(ctx: CanvasRenderingContext2D, phaseTime: number): void {
-  ctx.fillStyle = '#3a2818';
+const FLOOR_BASE = '#3a2818';
+const STAIN_CX = VIEW_W / 2;
+const STAIN_CY = VIEW_H / 2 + 6;
+
+function paintFloor(ctx: CanvasRenderingContext2D): void {
+  ctx.fillStyle = FLOOR_BASE;
   ctx.fillRect(0, 0, VIEW_W, VIEW_H);
   ctx.fillStyle = '#2a1c12';
   for (let y = 30; y < VIEW_H; y += 48) ctx.fillRect(0, y, VIEW_W, 4);
-  ctx.fillStyle = '#6fa8d8';
-  for (let i = 0; i < 9; i++) ctx.fillRect(Math.round(60 + hash(i) * 360), Math.round(40 + hash(i + 9) * 190), 6 + Math.round(hash(i + 3) * 10), 4);
-  const grow = Math.min(1, phaseTime / 1.2);
-  ctx.fillStyle = '#5a0a12';
-  for (let i = 0; i < 26; i++) {
-    const a = (i / 26) * Math.PI * 2;
-    const r = (40 + hash(i) * 60) * grow;
-    const x = Math.round(VIEW_W / 2 + Math.cos(a) * r * 1.6);
-    const y = Math.round(VIEW_H / 2 + Math.sin(a) * r * 0.8);
-    ctx.fillRect(x - 6, y - 4, 12, 8);
+}
+
+/** 近似椭圆的像素块：一行一行的矩形，每行宽度带一点抖动。 */
+function blobRows(rects: Array<[number, number, number, number]>, cx: number, cy: number, rx: number, ry: number, seed: number): void {
+  for (let y = -ry; y < ry; y += 3) {
+    const k = Math.sqrt(1 - (y / ry) * (y / ry));
+    const wl = rx * k * (0.86 + hash(seed + y) * 0.28);
+    const wr = rx * k * (0.86 + hash(seed + y + 77) * 0.28);
+    rects.push([cx - wl, cy + y, wl + wr, 3]);
   }
-  ctx.fillStyle = '#3a0508';
-  ctx.fillRect(VIEW_W / 2 - 46, VIEW_H / 2 - 16, 18, 8);
-  ctx.fillRect(VIEW_W / 2 + 28, VIEW_H / 2 - 16, 18, 8);
+}
+
+/** 一整块连在一起的深色痕迹：由重叠的像素块堆出来，带几条流痕和两个空洞 + 一道歪嘴，隐约像张扭曲的脸（只暗示，不写实）。 */
+function drawStain(ctx: CanvasRenderingContext2D, grow: number): void {
+  if (grow <= 0) return;
+  const body: Array<[number, number, number, number]> = [];
+  blobRows(body, 0, 0, 104, 54, 3);
+  blobRows(body, -34, 6, 70, 46, 41);
+  blobRows(body, 38, -4, 66, 44, 97);
+  blobRows(body, 6, 22, 80, 32, 131);
+  for (let i = 0; i < 14; i++) {
+    const a = hash(i + 200) * Math.PI * 2;
+    const d = 0.55 + hash(i + 230) * 0.4;
+    const w = 14 + hash(i + 260) * 22;
+    const h = 8 + hash(i + 290) * 12;
+    body.push([Math.cos(a) * 100 * d - w / 2, Math.sin(a) * 52 * d - h / 2, w, h]);
+  }
+  // 流痕：从下缘往下拖
+  for (let i = 0; i < 6; i++) {
+    const x = -80 + i * 30 + hash(i + 320) * 14;
+    const len = 12 + hash(i + 340) * 22;
+    body.push([x, 44, 3 + (i % 2), len]);
+    body.push([x - 1, 44 + len, 5, 3]);
+  }
+  const R = (r: [number, number, number, number], grow2: number): [number, number, number, number] => [
+    Math.round(STAIN_CX + r[0] * grow),
+    Math.round(STAIN_CY + r[1] * grow),
+    Math.max(1, Math.round((r[2] + grow2) * grow)),
+    Math.max(1, Math.round((r[3] + grow2) * grow)),
+  ];
+  ctx.fillStyle = '#5a0a12';
+  for (const r of body) {
+    const [x, y, w, h] = R(r, 4);
+    ctx.fillRect(x - 2, y - 2, w, h);
+  }
+  ctx.fillStyle = '#4a0810';
+  for (const r of body) ctx.fillRect(...R(r, 0));
+
+  // 空洞：露出地板
+  const voids: Array<[number, number, number, number]> = [];
+  blobRows(voids, -42, -20, 19, 11, 500);
+  blobRows(voids, 40, -16, 17, 12, 530);
+  const mouth: Array<[number, number, number, number]> = [];
+  for (let i = 0; i < 9; i++) mouth.push([-40 + i * 9, 28 - Math.round(Math.sin(i * 0.9) * 5) - i, 10, 5 + (i % 3 === 1 ? 2 : 0)]);
+  ctx.save();
+  ctx.beginPath();
+  for (const r of [...voids, ...mouth]) {
+    const [x, y, w, h] = R(r, 0);
+    ctx.rect(x, y, w, h);
+  }
+  ctx.clip();
+  paintFloor(ctx);
+  ctx.restore();
+}
+
+/** 结尾特写：放大的地板、碎桶片、一整块形状扭曲的深色痕迹（暗示，不写实）。 */
+function drawFinale(ctx: CanvasRenderingContext2D, phaseTime: number): void {
+  paintFloor(ctx);
+  drawStain(ctx, Math.min(1, phaseTime / 1.2));
+  ctx.fillStyle = '#6fa8d8';
+  for (let i = 0; i < 24; i++) {
+    const x = Math.round(40 + hash(i) * 400);
+    const y = Math.round(36 + hash(i + 9) * 200);
+    const nx = (x - STAIN_CX) / 124;
+    const ny = (y - STAIN_CY) / 76;
+    if (nx * nx + ny * ny < 1) continue;
+    ctx.fillRect(x, y, 6 + Math.round(hash(i + 3) * 10), 4);
+  }
   if (phaseTime > FINALE_FADE_AT) {
     ctx.fillStyle = `rgba(0,0,0,${Math.min(1, (phaseTime - FINALE_FADE_AT) / (FINALE_DONE_AT - FINALE_FADE_AT))})`;
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
