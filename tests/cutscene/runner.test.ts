@@ -117,6 +117,34 @@ describe('cutscene runner', () => {
     expect(r.world.cameraX).toBeCloseTo(550 - FOLLOW_OFFSET, 6);
   });
 
+  it('follow + walk 走完后镜头停在终点（正常演完与中途跳过一致）', () => {
+    const steps: Step[] = [
+      { kind: 'place', actor: 'chenling', x: 500, facing: 1, visible: true },
+      { kind: 'follow', actor: 'chenling' },
+      { kind: 'walk', actor: 'chenling', toX: 600, speed: 50 },
+    ];
+    const played = playAll(createRunner(steps));
+    expect(played.world.cameraX).toBe(600 - FOLLOW_OFFSET);
+    const skipped = skipRunner(tickRunner(createRunner(steps), 0.5, false).runner);
+    expect(skipped.world.cameraX).toBe(600 - FOLLOW_OFFSET);
+  });
+
+  it('walk 速度为 0 或负数时不会卡死，直接算到达', () => {
+    for (const speed of [0, -10]) {
+      const r = tickRunner(
+        createRunner([
+          { kind: 'place', actor: 'chenling', x: 100, facing: 1, visible: true },
+          { kind: 'walk', actor: 'chenling', toX: 40, speed },
+          { kind: 'wait', duration: 1 },
+        ]),
+        0.1,
+        false,
+      ).runner;
+      expect(r.world.actors.chenling).toMatchObject({ x: 40, walking: false });
+      expect(r.index).toBe(2);
+    }
+  });
+
   it('跳过：终态与完整演完一致', () => {
     const steps: Step[] = [
       { kind: 'rain', on: true },

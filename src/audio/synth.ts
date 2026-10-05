@@ -20,6 +20,9 @@ export function createSfx(): Sfx {
   let noise: AudioBuffer | null = null;
   let rain: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
   let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  // 想要的状态：标题画面在第一次点击（unlock）之前就会要求下雨，要先记着，解锁后补上。
+  let wantRain = false;
+  let wantHeartbeat = false;
 
   const env = (g: GainNode, t: number, peak: number, attack: number, decay: number): void => {
     g.gain.setValueAtTime(0.0001, t);
@@ -100,6 +103,40 @@ export function createSfx(): Sfx {
     }
   };
 
+  const applyRain = (): void => {
+    if (!ctx || !master || !noise) return;
+    if (wantRain && !rain) {
+      const src = ctx.createBufferSource();
+      src.buffer = noise;
+      src.loop = true;
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 1200;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 1);
+      src.connect(lp).connect(gain).connect(master);
+      src.start();
+      rain = { src, gain };
+    } else if (!wantRain && rain) {
+      const r = rain;
+      rain = null;
+      r.gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
+      r.src.stop(ctx.currentTime + 0.9);
+    }
+  };
+
+  const applyHeartbeat = (): void => {
+    if (!ctx) return;
+    if (wantHeartbeat && !heartbeatTimer) {
+      play('heartbeat');
+      heartbeatTimer = setInterval(() => play('heartbeat'), 900);
+    } else if (!wantHeartbeat && heartbeatTimer) {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    }
+  };
+
   return {
     unlock() {
       if (!ctx) {
@@ -111,39 +148,19 @@ export function createSfx(): Sfx {
         const data = noise.getChannelData(0);
         for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
       }
-      if (ctx.state === 'suspended') void ctx.resume();
+      // iOS 里 state 可能是 'interrupted'，不只是 'suspended'
+      if (ctx.state !== 'running') ctx.resume().catch(() => {});
+      applyRain();
+      applyHeartbeat();
     },
     play,
     setRain(on) {
-      if (!ctx || !master || !noise) return;
-      if (on && !rain) {
-        const src = ctx.createBufferSource();
-        src.buffer = noise;
-        src.loop = true;
-        const lp = ctx.createBiquadFilter();
-        lp.type = 'lowpass';
-        lp.frequency.value = 1200;
-        const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 1);
-        src.connect(lp).connect(gain).connect(master);
-        src.start();
-        rain = { src, gain };
-      } else if (!on && rain) {
-        const r = rain;
-        rain = null;
-        r.gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
-        r.src.stop(ctx.currentTime + 0.9);
-      }
+      wantRain = on;
+      applyRain();
     },
     setHeartbeat(on) {
-      if (on && !heartbeatTimer && ctx) {
-        play('heartbeat');
-        heartbeatTimer = setInterval(() => play('heartbeat'), 900);
-      } else if (!on && heartbeatTimer) {
-        clearInterval(heartbeatTimer);
-        heartbeatTimer = null;
-      }
+      wantHeartbeat = on;
+      applyHeartbeat();
     },
   };
 }

@@ -164,7 +164,7 @@ export function tickRunner(r: Runner, dt: number, advancePressed: boolean): Runn
       const a = world.actors[s.actor];
       const dir = Math.sign(s.toX - a.x);
       const nx = a.x + dir * s.speed * dt;
-      const arrived = dir === 0 || (dir > 0 ? nx >= s.toX : nx <= s.toX);
+      const arrived = dir === 0 || s.speed <= 0 || (dir > 0 ? nx >= s.toX : nx <= s.toX);
       if (arrived) {
         world = applyFinal(world, s);
         index++;
