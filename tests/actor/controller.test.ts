@@ -68,4 +68,20 @@ describe('controller', () => {
     a = stepActor(a, { dir: 0, jumpPressed: false, jumpHeld: false }, DT, solid).actor;
     expect(a.animTime).toBe(0);
   });
+
+  it('落地后 land 动画持续约 LAND_TIME，之后才回到 idle', () => {
+    let a = createActor(100, 224);
+    let r = stepActor(a, { dir: 0, jumpPressed: true, jumpHeld: true }, DT, solid);
+    a = r.actor;
+    for (let i = 0; i < 120 && !r.landed; i++) {
+      r = stepActor(a, { dir: 0, jumpPressed: false, jumpHeld: true }, DT, solid);
+      a = r.actor;
+    }
+    expect(r.landed).toBe(true);
+    const idle = { dir: 0 as const, jumpPressed: false, jumpHeld: false };
+    for (let i = 0; i < 3; i++) a = stepActor(a, idle, DT, solid).actor;
+    expect(a.anim).toBe('land'); // 3/60 < LAND_TIME
+    for (let i = 0; i < 7; i++) a = stepActor(a, idle, DT, solid).actor;
+    expect(a.anim).toBe('idle');
+  });
 });

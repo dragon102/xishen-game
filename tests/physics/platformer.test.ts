@@ -73,9 +73,22 @@ describe('platformer.step', () => {
     const start = run(createBody(8, 42, 12, 38), idle, 30, ceil);
     expect(start.y).toBe(42);
     let b = step(start, { dir: 0, jumpPressed: true, jumpHeld: true }, DT, ceil).body;
-    for (let i = 0; i < 10; i++) b = step(b, { dir: 0, jumpPressed: false, jumpHeld: true }, DT, ceil).body;
-    expect(b.y).toBeGreaterThanOrEqual(2 * TILE);
+    let top = b.y;
+    for (let i = 0; i < 10; i++) {
+      b = step(b, { dir: 0, jumpPressed: false, jumpHeld: true }, DT, ceil).body;
+      top = Math.min(top, b.y);
+    }
+    expect(top).toBe(2 * TILE); // 头顶刚好贴着砖块下沿
     expect(b.y).toBeLessThan(42);
+  });
+
+  it('不能二段跳：起跳后在空中再按跳不会再跳', () => {
+    const start = run(createBody(40, 0, 12, 38), idle, 60, FLOOR);
+    const first = step(start, { dir: 0, jumpPressed: true, jumpHeld: true }, DT, FLOOR);
+    expect(first.jumped).toBe(true);
+    const held: MoveInput = { dir: 0, jumpPressed: false, jumpHeld: true };
+    const b = run(first.body, held, 2, FLOOR);
+    expect(step(b, { dir: 0, jumpPressed: true, jumpHeld: true }, DT, FLOOR).jumped).toBe(false);
   });
 
   it('土狼时间：刚离开地面 0.05 秒内还能跳', () => {
