@@ -48,7 +48,7 @@ export type ColorGrid = (string | null)[][];
 
 export interface PixelPainter {
   fill(color: string, path: string): void;
-  stroke(color: string, width: number, path: string): void;
+  stroke(color: string, lineWidth: number, path: string): void;
   px(x: number, y: number, color: string): void;
 }
 
@@ -70,6 +70,7 @@ export function paintPixels(width: number, height: number, draw: (p: PixelPainte
         if (d[(y * width + x) * 4 + 3] >= 120) grid[y][x] = color;
       }
     }
+    c.setTransform(1, 0, 0, 1, 0, 0);
     c.clearRect(0, 0, width, height);
   };
   const begin = (): void => {
@@ -85,11 +86,11 @@ export function paintPixels(width: number, height: number, draw: (p: PixelPainte
       c.fill();
       commit(color);
     },
-    stroke(color, width, path) {
+    stroke(color, lineWidth, path) {
       begin();
       tracePath(c, path);
       c.strokeStyle = '#000';
-      c.lineWidth = width;
+      c.lineWidth = lineWidth;
       c.lineCap = 'round';
       c.stroke();
       commit(color);

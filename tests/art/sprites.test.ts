@@ -54,7 +54,11 @@ describe('人物精灵', () => {
   it('frameFor：走路 0.12 秒换一帧、站立 0.6 秒换一帧、落地下沉 1 像素', () => {
     expect(frameFor('walk', 0).frame).toBe('walk0');
     expect(frameFor('walk', 0.13).frame).toBe('walk1');
+    expect(frameFor('walk', 0.25).frame).toBe('walk2');
+    expect(frameFor('walk', 0.37).frame).toBe('walk3');
     expect(frameFor('walk', 0.49).frame).toBe('walk0');
+    expect(frameFor('idle', 0.55).frame).toBe('idle0');
+    expect(frameFor('idle', 0.61).frame).toBe('idle1');
     expect(frameFor('idle', 0.7).frame).toBe('idle1');
     expect(frameFor('land', 0)).toEqual({ frame: 'idle0', dy: 1 });
     expect(frameFor('jump', 0).frame).toBe('jump');

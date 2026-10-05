@@ -238,13 +238,27 @@ const FATHER_RAW: readonly string[] = [
 export const MOTHER_GRID: readonly string[] = withOutline(MOTHER_RAW, 'O');
 export const FATHER_GRID: readonly string[] = withOutline(FATHER_RAW, 'O');
 
+const canvasCache = new Map<string, HTMLCanvasElement>();
+
+/** 只在缓存没命中时才生成网格（每帧都会调用，别白白重建）。 */
+function cachedCanvas(key: string, build: () => string[], palette: Palette): HTMLCanvasElement {
+  const hit = canvasCache.get(key);
+  if (hit) return hit;
+  const cv = gridCanvas(key, build(), palette);
+  canvasCache.set(key, cv);
+  return cv;
+}
+
 /** 浏览器里取精灵 canvas（带缓存）。facing = -1 时用镜像网格。 */
 export function chenlingCanvas(frame: ChenlingFrame, facing: 1 | -1): HTMLCanvasElement {
-  const g = chenlingGrid(frame);
-  return gridCanvas(`chenling:${frame}:${facing}`, facing === 1 ? g : mirrorGrid(g), CHENLING_PALETTE);
+  return cachedCanvas(
+    `chenling:${frame}:${facing}`,
+    () => (facing === 1 ? chenlingGrid(frame) : mirrorGrid(chenlingGrid(frame))),
+    CHENLING_PALETTE,
+  );
 }
 
 export function parentCanvas(who: 'lixiuchun' | 'chentan', facing: 1 | -1): HTMLCanvasElement {
   const [grid, pal] = who === 'lixiuchun' ? [MOTHER_GRID, MOTHER_PALETTE] : [FATHER_GRID, FATHER_PALETTE];
-  return gridCanvas(`${who}:${facing}`, facing === 1 ? grid : mirrorGrid(grid), pal);
+  return cachedCanvas(`${who}:${facing}`, () => (facing === 1 ? [...grid] : mirrorGrid(grid)), pal);
 }
