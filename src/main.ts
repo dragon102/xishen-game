@@ -21,7 +21,7 @@ import { drawOpening } from './render/opening-scene';
 import { drawStageScene } from './render/stage-scene';
 import { drawHomeLevel } from './render/home-scene';
 import { drawStreetScene } from './render/street-scene';
-import { drawRain } from './render/common';
+import { FLOOR_Y, drawChenling, drawRain } from './render/common';
 import { createUi } from './ui/ui';
 
 const STEP = 1 / 60;
@@ -47,6 +47,7 @@ let home: HomeSession | null = null;
 let camX = 0;
 let spotX = 0;
 let time = 0;
+let titleTime = 0;
 let paused = false;
 let viewport: Viewport = fitViewport(window.innerWidth, window.innerHeight, window.devicePixelRatio || 1);
 
@@ -55,7 +56,7 @@ const ui = createUi(app, actions, {
   onContinue: () => { sfx.unlock(); apply({ type: 'continue' }); },
   onRestart: () => { sfx.unlock(); apply({ type: 'restart' }); },
   onPause: () => setPaused(true),
-  onResume: () => setPaused(false),
+  onResume: () => { sfx.unlock(); setPaused(false); },
   onQuit: () => {
     setPaused(false);
     apply({ type: 'quitToTitle' });
@@ -112,7 +113,10 @@ function setPaused(p: boolean): void {
   paused = p && can;
   actions.releaseAll();
   ui.showPause(paused);
-  if (paused) sfx.setHeartbeat(false);
+  if (paused) {
+    sfx.setHeartbeat(false);
+    sfx.suspend();
+  }
 }
 
 function update(dt: number): void {
@@ -157,8 +161,9 @@ function render(): void {
   else if (stage) drawStageScene(ctx, stage, camX, spotX);
   else if (home) drawHomeLevel(ctx, home, camX);
   else {
-    drawStreetScene(ctx, 300, time, {});
-    drawRain(ctx, time);
+    drawStreetScene(ctx, 300, titleTime, {});
+    drawChenling(ctx, 300 + 330, FLOOR_Y, 1, Math.floor(titleTime / 0.6) % 2 === 0 ? 'idle0' : 'idle1', 0, 300);
+    drawRain(ctx, titleTime);
   }
   present(screenCtx, view, viewport);
 }
@@ -183,6 +188,7 @@ function frame(now: number): void {
   } else {
     acc = 0;
   }
+  if (!opening && !stage && !home) titleTime += dt;
   render();
   requestAnimationFrame(frame);
 }
@@ -200,6 +206,26 @@ document.addEventListener('visibilitychange', () => {
     setPaused(true);
   }
 });
+
+const portrait = window.matchMedia('(orientation: portrait)');
+portrait.addEventListener('change', (e) => {
+  if (e.matches) setPaused(true);
+});
+
+if (import.meta.env.DEV) {
+  (window as unknown as { __xishen: unknown }).__xishen = {
+    frames(n: number) {
+      for (let i = 0; i < n; i++) {
+        update(STEP);
+        actions.endStep();
+      }
+      render();
+    },
+    press(code: string, down: boolean) {
+      window.dispatchEvent(new KeyboardEvent(down ? 'keydown' : 'keyup', { code }));
+    },
+  };
+}
 
 relayout();
 enterMode();

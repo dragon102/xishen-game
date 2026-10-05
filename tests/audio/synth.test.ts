@@ -12,6 +12,7 @@ describe('createSfx', () => {
       sfx.setHeartbeat(true);
       sfx.setRain(false);
       sfx.setHeartbeat(false);
+      sfx.suspend();
     }).not.toThrow();
   });
 });

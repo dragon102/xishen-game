@@ -6,9 +6,11 @@ export interface Sfx {
   play(id: SoundId): void;
   setRain(on: boolean): void;
   setHeartbeat(on: boolean): void;
+  /** 暂停时挂起音频；回来后由 unlock() 恢复。 */
+  suspend(): void;
 }
 
-const SILENT: Sfx = { unlock() {}, play() {}, setRain() {}, setHeartbeat() {} };
+const SILENT: Sfx = { unlock() {}, play() {}, setRain() {}, setHeartbeat() {}, suspend() {} };
 
 export function createSfx(): Sfx {
   const w = globalThis as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext };
@@ -161,6 +163,9 @@ export function createSfx(): Sfx {
     setHeartbeat(on) {
       wantHeartbeat = on;
       applyHeartbeat();
+    },
+    suspend() {
+      ctx?.suspend().catch(() => {});
     },
   };
 }

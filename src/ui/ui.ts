@@ -85,6 +85,15 @@ export function createUi(app: HTMLElement, actions: Actions, cb: UiCallbacks): U
   menu.style.gap = '12px';
   el('div', 'credit', title, '同人作品 · 原作《我不是戏神》三九音域 · 非官方，不收费 · 陈伶造型参考画师 @SYZDXZ 的同人图');
   const gate = new ConfirmGate(3000);
+  // 桌面便利：标题画面里 Enter / Space / E 等于点第一个按钮
+  window.addEventListener('keydown', (e) => {
+    if (e.repeat || title.classList.contains('hidden')) return;
+    if (e.code !== 'Enter' && e.code !== 'Space' && e.code !== 'KeyE') return;
+    const first = menu.querySelector('button');
+    if (!first) return;
+    e.preventDefault();
+    first.click();
+  });
 
   const pause = el('div', 'screen hidden', app);
   el('div', 'sub', pause, '已暂停');
@@ -125,6 +134,7 @@ export function createUi(app: HTMLElement, actions: Actions, cb: UiCallbacks): U
       end.classList.toggle('hidden', mode !== 'end');
       pause.classList.add('hidden');
       expect.classList.add('hidden');
+      dlg.classList.remove('beside-expect');
       dlg.classList.add('hidden');
       lastDialogueKey = '';
       overlay.querySelectorAll('.popup').forEach((p) => p.remove());
@@ -183,9 +193,11 @@ export function createUi(app: HTMLElement, actions: Actions, cb: UiCallbacks): U
     renderExpect(t, danger) {
       if (t === null) {
         expect.classList.add('hidden');
+        dlg.classList.remove('beside-expect');
         return;
       }
       expect.classList.remove('hidden');
+      dlg.classList.add('beside-expect');
       expect.classList.toggle('danger', danger);
       const label = `观众期待值：${t}`;
       if (expectValue.textContent !== label) expectValue.textContent = label;

@@ -53,6 +53,18 @@ describe('main.ts 接线', () => {
     expect(apply).toMatch(/clearProgress\(\s*storage\s*\)/);
   });
 
+  it('从暂停继续时先 sfx.unlock()（切后台后音频可能被系统挂起）', () => {
+    const i = SRC.indexOf('onResume:');
+    expect(i).toBeGreaterThanOrEqual(0);
+    const line = SRC.slice(i, SRC.indexOf('\n', i));
+    expect(line).toMatch(/sfx\.unlock\(\)/);
+  });
+
+  it('暂停时挂起音频，竖屏时暂停', () => {
+    expect(fnBody('function setPaused(')).toMatch(/sfx\.suspend\(\)/);
+    expect(SRC).toMatch(/matchMedia\(\s*'\(orientation: portrait\)'\s*\)/);
+  });
+
   it('标题的三个入口都先 sfx.unlock()', () => {
     for (const k of ['onStart', 'onContinue', 'onRestart']) {
       const i = SRC.indexOf(`${k}:`);

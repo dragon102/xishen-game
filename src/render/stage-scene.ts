@@ -10,6 +10,7 @@ import { VIEW_H, VIEW_W } from './viewport';
 const TILES = { '=': 'stageFloor', '#': 'stageWall', x: 'crate' } as const;
 
 let light: HTMLCanvasElement | null = null;
+let lightCtx: CanvasRenderingContext2D | null = null;
 
 /** 危险程度 0~1：越接近失败，红眼睛凑得越近。 */
 function dangerLean(s: StageSession): number {
@@ -55,8 +56,9 @@ function drawSpotlight(ctx: CanvasRenderingContext2D, sx: number): void {
     light = document.createElement('canvas');
     light.width = VIEW_W;
     light.height = VIEW_H;
+    lightCtx = light.getContext('2d');
   }
-  const l = light.getContext('2d');
+  const l = lightCtx;
   if (!l) return;
   const cone = (c: CanvasRenderingContext2D): void => {
     c.beginPath();
