@@ -11,7 +11,7 @@
 **Spec:** `docs/superpowers/specs/2026-10-05-chapter1-opening-design.md`（下称 spec）。
 
 **通用约定（每个任务都适用）：**
-- 工作目录：`/Users/zhangyabo/Documents/xishen-game`。
+- 工作目录：`项目根目录（xishen-game/）`。
 - 提交信息末尾加一行 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`（下面的 commit 命令已写好）。
 - 纯逻辑模块**禁止** import 任何 `render/`、`ui/`、`art/` 下的文件，也禁止使用 `document` / `window`。
 - jsdom 没有 Canvas 2D 与 AudioContext：测试里**不要**调用任何会 `getContext('2d')` 的函数。
