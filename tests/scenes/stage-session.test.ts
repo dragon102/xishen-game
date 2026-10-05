@@ -70,6 +70,18 @@ describe('stage session', () => {
     expect(again.popups).toEqual([]);
   });
 
+  it('说完一段想法后有短暂冷却：下一帧连按互动不会立刻再开，0.4 秒后可以', () => {
+    let s = walkTo(skipIntro(createStageSession()), 30 * 16 + 8);
+    s = stepStage(s, { ...none, interactPressed: true }, DT).session;
+    for (let i = 0; i < 4; i++) s = stepStage(s, tap, DT).session;
+    expect(s.talk.current).toBeNull();
+    s = stepStage(s, { ...none, interactPressed: true }, DT).session;
+    expect(s.talk.current).toBeNull();
+    for (let i = 0; i < 24; i++) s = stepStage(s, none, DT).session;
+    s = stepStage(s, { ...none, interactPressed: true }, DT).session;
+    expect(s.talk.current).not.toBeNull();
+  });
+
   it('读想法期间期待值暂停', () => {
     let s = walkTo(skipIntro(createStageSession()), 30 * 16 + 8);
     s = stepStage(s, { ...none, interactPressed: true }, DT).session;

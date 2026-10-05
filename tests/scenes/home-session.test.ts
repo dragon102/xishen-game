@@ -73,6 +73,18 @@ describe('home session', () => {
     expect(s.phase).toBe('play');
   });
 
+  it('说完一段想法后有短暂冷却：下一帧连按互动不会立刻再开，0.4 秒后可以', () => {
+    let { s } = walkTo(wakeUp(), 36 * 16 + 8);
+    s = stepHome(s, { ...none, interactPressed: true }, DT).session;
+    for (let i = 0; i < 4; i++) s = stepHome(s, tap, DT).session;
+    expect(s.talk.current).toBeNull();
+    s = stepHome(s, { ...none, interactPressed: true }, DT).session;
+    expect(s.talk.current).toBeNull();
+    for (let i = 0; i < 24; i++) s = stepHome(s, none, DT).session;
+    s = stepHome(s, { ...none, interactPressed: true }, DT).session;
+    expect(s.talk.current).not.toBeNull();
+  });
+
   it('调查厨房水桶：想法说完进入 finale，之后 outcome = complete', () => {
     let { s } = walkTo(wakeUp(), 77 * 16 + 8);
     s = stepHome(s, { ...none, interactPressed: true }, DT).session;

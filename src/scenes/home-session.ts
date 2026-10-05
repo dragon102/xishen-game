@@ -11,6 +11,8 @@ export const EYES_TIME = 0.5;
 export const FLICKER_TIME = 0.6;
 export const FINALE_FADE_AT = 1.5;
 export const FINALE_DONE_AT = 3.0;
+/** 说完一段想法后，这么久之内不能再开新的（防连按互动把同一段想法循环）。 */
+export const INTERACT_COOLDOWN = 0.35;
 
 export type HomePhase = 'wake' | 'play' | 'finale' | 'done';
 
@@ -26,6 +28,7 @@ export interface HomeSession {
   eyes: number;
   flicker: number;
   finalePending: boolean;
+  interactCooldown: number;
   outcome: 'none' | 'complete';
 }
 
@@ -50,6 +53,7 @@ export function createHomeSession(): HomeSession {
     eyes: 0,
     flicker: 0,
     finalePending: false,
+    interactCooldown: 0,
     outcome: 'none',
   };
 }
@@ -61,6 +65,7 @@ export function stepHome(s0: HomeSession, input: FrameInput, dt: number): HomeOu
     time: s0.time + dt,
     eyes: Math.max(0, s0.eyes - dt),
     flicker: Math.max(0, s0.flicker - dt),
+    interactCooldown: Math.max(0, s0.interactCooldown - dt),
   };
   const advance = input.advancePressed || input.interactPressed;
 
@@ -94,7 +99,8 @@ export function stepHome(s0: HomeSession, input: FrameInput, dt: number): HomeOu
           sounds.push('rumble');
           return { session: { ...s, talk, phase: 'finale', phaseTime: 0, finalePending: false }, sounds };
         }
-        return { session: { ...s, talk }, sounds };
+        const interactCooldown = talk.current ? s.interactCooldown : INTERACT_COOLDOWN;
+        return { session: { ...s, talk, interactCooldown }, sounds };
       }
 
       const prevX = footX(s.actor);
@@ -119,7 +125,7 @@ export function stepHome(s0: HomeSession, input: FrameInput, dt: number): HomeOu
       const nearby = findNearby(HOME, r.actor.body);
       let talk = s.talk;
       let finalePending = s.finalePending;
-      if (input.interactPressed && nearby) {
+      if (input.interactPressed && nearby && s0.interactCooldown <= 0) {
         talk = startTalk(nearby.lines.map((text) => think(text)));
         if (nearby.finale) finalePending = true;
         sounds.push('blip');

@@ -11,6 +11,8 @@ export const FOOTSTEP_INTERVAL = 0.32;
 export const PASS_SHATTER_AT = 0.8;
 export const PASS_DONE_AT = 2.2;
 export const FAIL_DONE_AT = 2.0;
+/** 说完一段想法后，这么久之内不能再开新的（防连按互动把同一段想法循环）。 */
+export const INTERACT_COOLDOWN = 0.35;
 
 export const STAGE_INTRO: readonly Line[] = [think('这是……哪里？'), think('得找到出口。')];
 
@@ -32,6 +34,7 @@ export interface StageSession {
   talk: Talk;
   nearby: InteractableDef | null;
   footstep: number;
+  interactCooldown: number;
   outcome: 'none' | 'passed' | 'failed';
 }
 
@@ -56,6 +59,7 @@ export function createStageSession(): StageSession {
     talk: startTalk(STAGE_INTRO),
     nearby: null,
     footstep: 0,
+    interactCooldown: 0,
     outcome: 'none',
   };
 }
@@ -65,6 +69,7 @@ export function stepStage(s: StageSession, input: FrameInput, dt: number): Stage
   const popups: Popup[] = [];
   if (s.phase === 'done') return { session: s, sounds, popups, heartbeat: false };
   const time = s.time + dt;
+  const cooldown = Math.max(0, s.interactCooldown - dt);
 
   if (s.phase === 'passing' || s.phase === 'failing') {
     const phaseTime = s.phaseTime + dt;
@@ -80,7 +85,8 @@ export function stepStage(s: StageSession, input: FrameInput, dt: number): Stage
   if (s.talk.current) {
     const talk = stepTalk(s.talk, dt, input.advancePressed || input.interactPressed);
     const phase: StagePhase = s.phase === 'intro' && !talk.current ? 'play' : s.phase;
-    return { session: { ...s, time, talk, phase }, sounds, popups, heartbeat: s.expect.status === 'danger' };
+    const interactCooldown = talk.current ? cooldown : INTERACT_COOLDOWN;
+    return { session: { ...s, time, talk, phase, interactCooldown }, sounds, popups, heartbeat: s.expect.status === 'danger' };
   }
 
   const r = stepActor(s.actor, { dir: input.dir, jumpPressed: input.jumpPressed, jumpHeld: input.jumpHeld }, dt, solid);
@@ -100,7 +106,7 @@ export function stepStage(s: StageSession, input: FrameInput, dt: number): Stage
   let found = s.found;
   let talk = s.talk;
   let newHotspots = 0;
-  if (input.interactPressed && nearby) {
+  if (input.interactPressed && nearby && s.interactCooldown <= 0) {
     const m = markFound(found, nearby.id);
     found = m.found;
     if (m.firstTime && nearby.scoring) newHotspots = 1;
@@ -128,7 +134,7 @@ export function stepStage(s: StageSession, input: FrameInput, dt: number): Stage
   }
 
   return {
-    session: { ...s, time, phase, phaseTime: 0, actor: r.actor, expect: t.state, found, talk, nearby, footstep },
+    session: { ...s, time, phase, phaseTime: 0, actor: r.actor, expect: t.state, found, talk, nearby, footstep, interactCooldown: cooldown },
     sounds,
     popups,
     heartbeat: t.state.status === 'danger',
