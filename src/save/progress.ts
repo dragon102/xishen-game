@@ -44,7 +44,8 @@ export function clearProgress(store: KeyValueStore): void {
 export function safeLocalStorage(): KeyValueStore {
   try {
     const ls = window.localStorage;
-    ls.getItem(SAVE_KEY);
+    ls.setItem(SAVE_KEY + ':probe', '1');
+    ls.removeItem(SAVE_KEY + ':probe');
     return ls;
   } catch {
     const mem = new Map<string, string>();
