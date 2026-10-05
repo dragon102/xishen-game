@@ -5,7 +5,9 @@ const UP_EVENTS = ['pointerup', 'pointercancel', 'lostpointercapture'] as const;
 function bindPointerHold(el: HTMLElement, action: ActionName, actions: Actions, prefix: string, markHeld: boolean): () => void {
   const active = new Set<number>();
   const down = (e: Event): void => {
-    const id = (e as PointerEvent).pointerId;
+    const pe = e as PointerEvent;
+    if (pe.pointerType === 'mouse' && pe.button !== 0) return;
+    const id = pe.pointerId;
     e.preventDefault();
     active.add(id);
     try {

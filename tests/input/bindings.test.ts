@@ -59,6 +59,14 @@ describe('bindKeyboard', () => {
     off();
   });
 
+  it('带修饰键的组合键（如 Cmd+←）不触发动作', () => {
+    const a = new Actions();
+    const off = bindKeyboard(window, a);
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'ArrowLeft', metaKey: true, cancelable: true }));
+    expect(a.isDown('left')).toBe(false);
+    off();
+  });
+
   it('解绑后不再响应', () => {
     const a = new Actions();
     bindKeyboard(window, a)();
@@ -77,6 +85,7 @@ describe('bindTouchButton', () => {
     expect(a.isDown('jump')).toBe(true);
     expect(el.classList.contains('held')).toBe(true);
     pointer(el, 'pointerup', 1);
+    expect(el.classList.contains('held')).toBe(true);
     expect(a.isDown('jump')).toBe(true);
     pointer(el, 'pointercancel', 2);
     expect(a.isDown('jump')).toBe(false);
@@ -94,6 +103,21 @@ describe('bindTouchButton', () => {
     pointer(jump, 'pointerup', 2);
     expect(a.isDown('right')).toBe(true);
     expect(a.isDown('jump')).toBe(false);
+  });
+});
+
+describe('bindTouchButton 鼠标按键', () => {
+  it('忽略鼠标非主键（右键）', () => {
+    const a = new Actions();
+    const el = document.createElement('div');
+    bindTouchButton(el, 'jump', a);
+    const ev = new Event('pointerdown', { bubbles: true, cancelable: true });
+    Object.defineProperty(ev, 'pointerId', { value: 9 });
+    Object.defineProperty(ev, 'pointerType', { value: 'mouse' });
+    Object.defineProperty(ev, 'button', { value: 2 });
+    el.dispatchEvent(ev);
+    expect(a.isDown('jump')).toBe(false);
+    expect(el.classList.contains('held')).toBe(false);
   });
 });
 

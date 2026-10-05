@@ -16,6 +16,7 @@ export const KEY_MAP: Readonly<Record<string, ActionName>> = {
 
 export function bindKeyboard(target: Window, actions: Actions): () => void {
   const down = (e: KeyboardEvent): void => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
     const action = KEY_MAP[e.code];
     if (!action) return;
     e.preventDefault();
