@@ -119,9 +119,11 @@ export function stepStage(s: StageSession, input: FrameInput, dt: number): Stage
   let phase: StagePhase = 'play';
   if (t.state.status === 'passed') {
     phase = 'passing';
+    talk = startTalk([]);
     sounds.push('bell');
   } else if (t.state.status === 'failed') {
     phase = 'failing';
+    talk = startTalk([]);
     sounds.push('rumble');
   }
 

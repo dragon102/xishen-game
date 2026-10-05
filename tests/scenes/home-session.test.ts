@@ -76,7 +76,10 @@ describe('home session', () => {
   it('调查厨房水桶：想法说完进入 finale，之后 outcome = complete', () => {
     let { s } = walkTo(wakeUp(), 77 * 16 + 8);
     s = stepHome(s, { ...none, interactPressed: true }, DT).session;
-    for (let i = 0; i < 4; i++) s = stepHome(s, tap, DT).session;
+    s = stepHome(s, tap, DT).session;
+    expect(s.phase).toBe('play');
+    expect(s.talk.current).not.toBeNull();
+    for (let i = 0; i < 3; i++) s = stepHome(s, tap, DT).session;
     expect(s.phase).toBe('finale');
     for (let i = 0; i < Math.ceil(FINALE_DONE_AT / DT) + 1; i++) s = stepHome(s, none, DT).session;
     expect(s.outcome).toBe('complete');

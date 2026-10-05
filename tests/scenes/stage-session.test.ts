@@ -112,4 +112,12 @@ describe('stage session', () => {
     expect(shatters).toBe(1);
     expect(s.outcome).toBe('passed');
   });
+
+  it('过关/失败的那一帧正好在调查：对话框收起，不留空框盖在演出上', () => {
+    let s = walkTo(skipIntro(createStageSession()), 30 * 16 + 8);
+    s = { ...s, expect: { ...s.expect, value: 58 } };
+    const out = stepStage(s, { ...none, interactPressed: true }, DT);
+    expect(out.session.phase).toBe('passing');
+    expect(out.session.talk.current).toBeNull();
+  });
 });
